@@ -1,0 +1,89 @@
+THU FEB 19 (PST)
+Goal for today: “Prompt → runs/room_plan.json (always) → Unreal loads + spawns placeholders (at least once)”
+
+1:43 PM – 2:00 PM   Quick reset + set the ONE success criteria
+                    - Write it down: “I can generate runs/room_plan.json and Unreal imports it.”
+
+2:00 PM – 3:15 PM   Repo + project structure (fast + minimal)
+                    - Create official hackathon repo folder (don’t overthink naming)
+                    - Move pydantic_experiment into /python (or /backend)
+                    - Add /unreal folder placeholder (empty is fine for now)
+                    - Add .gitignore (ignore runs/, .env, __pycache__, etc.)
+                    - Add .env.example (LLM_BASE_URL, LLM_MODEL, ROOM_GRID_SIZE, RUNS_DIR)
+                    - Commit: “Scaffold repo + env + runs dir”
+
+3:15 PM – 3:25 PM   Short break
+
+3:25 PM – 4:45 PM   Pipeline reliability: ALWAYS produce a final RoomPlan JSON
+                    - Ensure Settings has runs_dir_path
+                    - On every run: clear runs dir, then write:
+                      - runs/design.json
+                      - runs/space.json
+                      - runs/room_plan_candidate.json (last parsed attempt)
+                      - runs/room_plan.json (final output: valid if possible, repaired if needed)
+                      - runs/validation_error.txt (if any)
+                    - Confirm: RepairAgent triggers ONLY after retries are exhausted
+                    - Test 2 prompts:
+                      - garden shed
+                      - small coffee shop
+                    - Definition of “pass”: room_plan.json exists every run
+
+4:45 PM – 5:00 PM   Break + small snack / short walk
+
+5:00 PM – 6:30 PM   Unreal Visualizer: bare minimum import + spawn
+                    - Create UE project (blank)
+                    - Add a Blueprint Actor “BP_LayoutLoader”
+                    - Load JSON from absolute path pointing to runs/room_plan.json (hardcode for now)
+                    - Spawn cubes for FLOOR elements:
+                      - scale X/Y from footprint width/depth
+                      - set location from transform x/y (Z = 0)
+                    - Optional if quick: TextRender above cube with label
+
+6:30 PM – 7:15 PM   Dinner
+
+7:15 PM – 8:30 PM   End-to-end integration (the demo loop)
+                    - Run python → confirm runs/room_plan.json updates
+                    - In Unreal: hit Play → loader reads JSON → cubes appear
+                    - Fix obvious coordinate issues only (swap axes if needed, scale factor if needed)
+                    - Add a simple “Reload” key press (R) if easy; otherwise restart PIE
+
+8:30 PM – 9:15 PM   Demo prep (lightweight)
+                    - Pick 2 prompts that look decent (shed + coffee shop)
+                    - Do 1 dry run recording: terminal run + Unreal import + quick fly around
+                    - Save 2 screenshots for README
+
+9:15 PM – 10:00 PM  README skeleton + commit
+                    - README sections:
+                      - What it does (1 paragraph)
+                      - Architecture (DesignAgent → SpaceAgent → RoomPlanAgent → RepairAgent → Unreal)
+                      - How to run (python + Unreal)
+                      - Limitations (overlaps → repair may delete items)
+                    - Commit: “Demo loop working + README skeleton”
+
+
+FRI FEB 20 (PST) — FINISH + SUBMIT (MORNING BUFFER)
+Goal for Friday: “Polish + record final 2–3 min demo + submit”
+
+7:30 AM – 8:30 AM   Final reliability pass (no heroics)
+                    - Fresh run from clean repo checkout works
+                    - runs/ outputs appear correctly
+                    - Unreal loads without manual JSON edits
+
+8:30 AM – 9:15 AM   Final video capture
+                    - Keep it short: show 2 prompts max
+                    - Show: prompt → generated JSON → Unreal spawns layout
+                    - Export video + verify audio/screen readable
+
+9:15 AM – 9:40 AM   README finalize + repo polish
+                    - Clear setup steps
+                    - Add demo instructions + video link
+                    - Ensure .env not committed, runs/ ignored, no huge files
+
+9:40 AM – 10:00 AM  Submission buffer
+                    - Last checks: repo public, README good, video link works
+                    - Submit
+
+
+NOTES (TO STAY ON TRACK)
+- If something takes >30 minutes and isn’t “demo loop”, cut it.
+- Today’s win is ONE working end-to-end import in Unreal. Everything else is bonus.

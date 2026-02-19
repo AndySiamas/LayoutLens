@@ -1,0 +1,8 @@
+name: layout_lens
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - -e .
