@@ -19,7 +19,10 @@ class Application:
         self.settings = settings
 
     def run(self) -> None:
-        Utilities.reset_dir(self.settings.runs_dir_path)
+        run_id: str = Utilities.make_run_id()
+        run_output_dir_path: Path = self.settings.output_dir_path / run_id
+        self.settings.set_run_output_dir(run_output_dir_path)
+        Utilities.reset_dir(self.settings.run_output_dir_path)
 
         provider = OpenAIProvider(base_url=self.settings.llm_base_url)
         model = OpenAIChatModel(model_name=self.settings.llm_model, provider=provider)

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
+import secrets
+
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -24,6 +27,16 @@ class Utilities:
     def ensure_parent_dir(path: Path) -> None:
         """Create the parent directory for a file path (no-op if it already exists)."""
         path.parent.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def ensure_env_file(
+        env_path: Path = Path(".env"),
+        example_path: Path = Path(".env.example"),
+    ) -> None:
+        """Create .env from .env.example if .env is missing."""
+        if env_path.exists() or not example_path.exists():
+            return
+        Utilities.write_bytes(env_path, example_path.read_bytes())
 
     @staticmethod
     def write_json(path: Path, model: BaseModel, *, indent: int = 2) -> None:
@@ -54,3 +67,14 @@ class Utilities:
                 return str(current_exception)
             current_exception = current_exception.__cause__
         return None
+    
+    @staticmethod
+    def make_run_id() -> str:
+        """
+        Create a folder-safe run id.
+        """
+        current_time: datetime = datetime.now()
+        timestamp: str = current_time.strftime("%Y_%m_%d_%H%M%S")
+        random_suffix_hex: str = secrets.token_hex(2)
+        run_id = f"{timestamp}_{random_suffix_hex}"
+        return run_id
