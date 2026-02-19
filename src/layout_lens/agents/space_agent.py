@@ -5,7 +5,6 @@ from pydantic_ai import Agent, RunContext
 from layout_lens.agents.deps import Deps
 from layout_lens.schemas.design import Design
 from layout_lens.schemas.space import Space
-from layout_lens.core.geometry.geometry_rules import GeometryRules
 
 
 class SpaceAgent:
