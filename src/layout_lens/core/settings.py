@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     llm_provider: Literal['local', 'openai', 'google', 'anthropic'] = 'local'
     llm_model: str = 'google/gemma-3-27b'
     llm_api_key: str = ''
-    room_grid_size: float = 0.25
 
     # Root folder where all runs go
     output_dir_path: Path = Path('./output')

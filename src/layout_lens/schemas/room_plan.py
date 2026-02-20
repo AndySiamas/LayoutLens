@@ -124,6 +124,16 @@ class Element(StrictModel):
         ),
     )
 
+    height: float = Field(
+        default=0.9,
+        gt=0.0,
+        description=(
+            "Vertical height of this element in meters. "
+            "Use realistic values and values based on the user's intent. Examples: chair ~0.9, door ~2.0"
+            "The height should NOT exceed the room space's height"
+        ),
+    )
+
     transform: Transform2D = Field(description="Center position + rotation (meters + degrees).")
     footprint: Footprint = Field(description="2D footprint shape in meters (used for bounds/collision).")
 
@@ -140,8 +150,3 @@ class RoomPlan(StrictModel):
     """
     space: Space = Field(description="Room envelope (boundary polygon + height).")
     elements: list[Element] = Field(default_factory=list, description="Placed items in the room.")
-    room_grid_size: float = Field(
-        gt=0,
-        default=0.25,
-        description="Grid resolution in meters for snapping/ASCII rendering.",
-    )

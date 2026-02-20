@@ -50,7 +50,6 @@ class RoomPlanAgent:
                     - Small decor should be 'on' or 'wall' (not 'floor') unless it truly occupies floor space.
                     - Chairs must not overlap tables. Keep at least 0.10m gap between chair and table footprints.
                     - Prefer realistic footprints; keep yaw_deg to 0/90/180/270.\n
-                    - room_grid_size defaults to {ctx.deps.settings.room_grid_size}.\n
                     """)
 
         @agent.output_validator
