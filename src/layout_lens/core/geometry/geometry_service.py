@@ -32,7 +32,6 @@ class GeometryService:
     overlap_separation_margin: float = 0.10  # how much to separate beyond overlap
     max_reported_overlap_pairs: int = 12
     wall_max_distance: float = 0.35  # "near wall" requirement for WALL placement
-    validation_error_path: Path = Path("./runs/validation_error.txt")
 
     # -------------------------
     # Geometry construction
@@ -146,12 +145,20 @@ class GeometryService:
         room_polygon = self.create_room_polygon(plan.space)
         tolerant_room_polygon = room_polygon.buffer(self.boundary_tolerance)
 
-        issues: list[str] = []
-        issues += self._collect_duplicate_id_issues(plan.elements)
-
         element_polygons_by_id: dict[str, Polygon] = {
             element.id: self.create_element_polygon(element) for element in plan.elements
         }
+
+        issues: list[str] = []
+        issues += self._collect_duplicate_id_issues(plan.elements)
+
+        room_height: float = plan.space.height
+        for element in plan.elements:
+            if element.height > room_height:
+                issues.append(
+                    f"Element '{element.id}' ('{element.label}') has height {element.height:.2f}m "
+                    f"but room height is {room_height:.2f}m. Reduce the element height to <= room height."
+                )
 
         issues += self._collect_bounds_issues(tolerant_room_polygon, plan.elements, element_polygons_by_id)
         issues += self._collect_floor_overlap_issues(tolerant_room_polygon, plan.elements, element_polygons_by_id)
@@ -428,7 +435,6 @@ class GeometryService:
         a_min_x, a_min_y, a_max_x, a_max_y = element_a_polygon.bounds
         b_min_x, b_min_y, b_max_x, b_max_y = element_b_polygon.bounds
 
-        # How far B must move (plus margin) to be fully separated from A along each axis direction.
         separation_margin = self.overlap_separation_margin
         push_right = (a_max_x - b_min_x) + separation_margin
         push_left = (b_max_x - a_min_x) + separation_margin
@@ -442,7 +448,6 @@ class GeometryService:
             (0.0, -push_down),
         ]
 
-        # Prefer smaller moves first.
         candidate_moves.sort(key=lambda d: abs(d[0]) + abs(d[1]))
 
         chosen_move: tuple[float, float] | None = None
@@ -451,7 +456,6 @@ class GeometryService:
             total_dx, total_dy = candidate_dx, candidate_dy
             moved_polygon = shapely_translate(element_b_polygon, xoff=total_dx, yoff=total_dy)
 
-            # If we pushed outside the room, clamp it back in (but keep the overall move).
             if not room_for_clamp_polygon.covers(moved_polygon):
                 correction = self._suggest_translation_into_room(
                     room_polygon=room_for_clamp_polygon,
@@ -466,7 +470,6 @@ class GeometryService:
                 total_dy += correction_dy
                 moved_polygon = shapely_translate(element_b_polygon, xoff=total_dx, yoff=total_dy)
 
-            # Must be inside AND must actually eliminate the overlap (touching edges is OK).
             if not room_for_clamp_polygon.covers(moved_polygon):
                 continue
             if moved_polygon.intersects(element_a_polygon) and not moved_polygon.touches(element_a_polygon):
@@ -483,6 +486,13 @@ class GeometryService:
             )
 
         move_x, move_y = chosen_move
+        if abs(move_x) < 0.01 and abs(move_y) < 0.01:
+            return (
+                f"Floor elements overlap: '{element_a.id}' ({element_a.label}) and '{element_b.id}' ({element_b.label}). "
+                f"Move ONLY '{element_b.id}' away from '{element_a.id}' by at least 0.20m (any direction), "
+                "or resize/rotate it, or delete a smaller/less important item to eliminate the overlap."
+            )
+
         b_center_x, b_center_y = element_b.transform.x, element_b.transform.y
         new_b_center_x = b_center_x + move_x
         new_b_center_y = b_center_y + move_y

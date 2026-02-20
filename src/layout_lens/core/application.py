@@ -13,12 +13,11 @@ from layout_lens.llm.model_factory import ModelFactory
 from layout_lens.schemas.room_plan import RoomPlan
 from layout_lens.utilities.utilities import Utilities
 
-
 class Application:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-    def run(self) -> None:
+    def run(self, user_prompt: str) -> str:
         run_id: str = Utilities.make_run_id()
         run_output_dir_path: Path = self.settings.output_dir_path / run_id
         self.settings.set_run_output_dir(run_output_dir_path)
@@ -31,33 +30,22 @@ class Application:
             geometry_service=GeometryService()
         )
 
-        user_prompt = (f"""
-                       Take your time and think carefully. Design the interior layout for a small neighborhood coffee shop. It should feel cozy and functional. - An ordering counter with a point-of-sale area - An espresso machine behind the counter - A pickup area that doesn’t block the entrance - A small pastry display - At least 1 customer table with chairs - A menu board on a wall - Some kind of storage (cabinets or shelving) for supplies - At least one trash bin
-                        """) 
+        design_agent = DesignAgent(model)
+        design = design_agent.run_sync(user_prompt, deps)
+        Utilities.write_json(self.settings.design_output_path, design)
 
-        try:
-            design_agent = DesignAgent(model)
-            design = design_agent.run_sync(user_prompt, deps)
-            Utilities.write_json(self.settings.design_output_path, design)
+        space_agent = SpaceAgent(model)
+        space = space_agent.run_sync(user_prompt, design, deps)
+        Utilities.write_json(self.settings.space_output_path, space)
 
-            space_agent = SpaceAgent(model)
-            space = space_agent.run_sync(user_prompt, design, deps)
-            Utilities.write_json(self.settings.space_output_path, space)
+        room_plan_agent = RoomPlanAgent(model)
+        room_plan = room_plan_agent.run_sync(
+            user_prompt=user_prompt,
+            design=design,
+            space=space,
+            deps=deps,
+        )
+        Utilities.write_json(self.settings.room_plan_output_path, room_plan)
 
-            room_plan_agent = RoomPlanAgent(model)
-            room_plan = room_plan_agent.run_sync(
-                user_prompt=user_prompt,
-                design=design,
-                space=space,
-                deps=deps,
-            )
-            Utilities.write_json(self.settings.room_plan_output_path, room_plan)
-            print('Application complete!')
-
-        except pai_exc.UnexpectedModelBehavior as e:
-            retry_msg = Utilities.unwrap_model_retry_message(e)
-            if retry_msg:
-                print("\n=== RoomPlan validation message ===\n")
-                print(retry_msg)
-            else:
-                raise
+        completion_message = f"Application complete! Output folder: {self.settings.run_output_dir_path.resolve()}"
+        return completion_message

@@ -59,6 +59,7 @@ class Space(StrictModel):
     )
     openings: list[Opening] = Field(
         default_factory=list,
+        min_length=1,
         description="Doors/windows/openings anchored to boundary edges.",
     )
 

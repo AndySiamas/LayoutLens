@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "layout-lens"
 version = "0.1.0"
-description = "An agentic prompt to 3D placeholder visualizer (LayoutLens)"
+description = "An agentic prompt to 3D placeholder visualizer"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -13,6 +13,7 @@ dependencies = [
   "pydantic-settings",
   "python-dotenv",
   "shapely",
+  "rich>=13.0"
 ]
 
 [project.optional-dependencies]
@@ -22,7 +23,7 @@ dev = [
 ]
 
 [project.scripts]
-layout-lens = "layout_lens.__main__:main"
+layout-lens = "layout_lens.main:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
