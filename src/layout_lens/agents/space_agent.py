@@ -31,7 +31,7 @@ class SpaceAgent:
                     - The first boundary point must be (0,0).
                     - List boundary points around the perimeter (clockwise OR counterclockwise), consistent ordering.
                     - Choose reasonable overall dimensions based on the user's intent and the provided design intent.
-                    - Prefer rooms that are slightly larger than rooms that are tiny, within reason.
+                    - Make rooms slightly bigger than the user requests.
 
                     Boundary rules:
                     - Use a simple polygon (no self-intersections).
