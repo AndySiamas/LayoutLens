@@ -189,7 +189,3 @@ What you should see:
 - Multi-room support: extend `Space` + `RoomPlan` to support multiple rooms and connecting doors.
 
 ---
-
-## License
-
-Hackathon prototype.
