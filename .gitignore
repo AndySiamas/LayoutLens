@@ -9,3 +9,8 @@ __pycache__/
 .ruff_cache/
 .vscode/
 *.egg-info/
+unreal/**/Binaries/
+unreal/**/Content/
+unreal/**/Intermediate/
+unreal/**/Saved/
+unreal/**/.vs/
