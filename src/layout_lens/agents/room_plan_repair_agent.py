@@ -63,9 +63,9 @@ class RoomPlanRepairAgent:
 
         repaired_room_plan = self.agent.run_sync(prompt, deps=deps).output
 
-        # Best effort: validate; if it still fails, dump and return repaired anyway so Unreal can show *something*.
+        # best effort to validate - if it still fails, dump and return repaired anyway
         try:
-            return deps.geometry_service.validate_room_plan_or_retry(repaired_room_plan)
+            return deps.geometry_service.validate_room_plan_or_retry(repaired_room_plan, deps.settings)
         except ModelRetry as retry:
             Utilities.write_json(deps.settings.room_plan_output_path, repaired_room_plan)
             Utilities.write_text(deps.settings.validation_error_path, str(retry))

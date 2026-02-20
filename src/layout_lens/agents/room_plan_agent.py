@@ -59,7 +59,7 @@ class RoomPlanAgent:
             Utilities.write_json(ctx.deps.settings.room_plan_output_path, plan)
 
             try:
-                return ctx.deps.geometry_service.validate_room_plan_or_retry(plan)
+                return ctx.deps.geometry_service.validate_room_plan_or_retry(plan, ctx.deps.settings)
             except ModelRetry as retry:
                 Utilities.write_text(ctx.deps.settings.validation_error_path, str(retry))
                 raise
@@ -89,7 +89,7 @@ class RoomPlanAgent:
 
             failing_room_plan = RoomPlan.model_validate_json(failing_room_plan_path.read_text(encoding='utf-8'))
 
-            # Prefer the last stored validation error (most reliable).
+            # Prefer the last stored validation error
             validation_error_message = ""
             if deps.settings.validation_error_path.exists():
                 validation_error_message = deps.settings.validation_error_path.read_text(encoding="utf-8").strip()

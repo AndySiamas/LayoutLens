@@ -53,7 +53,7 @@ class SpaceAgent:
         
         @agent.output_validator
         def validate_space(ctx: RunContext[Deps], space: Space) -> Space:
-            return ctx.deps.geometry_service.validate_space_or_retry(space)
+            return ctx.deps.geometry_service.validate_space_or_retry(space, ctx.deps.settings)
 
         return agent
 

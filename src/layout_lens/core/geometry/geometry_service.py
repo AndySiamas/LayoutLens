@@ -12,6 +12,7 @@ from shapely.ops import nearest_points
 
 from pydantic_ai import ModelRetry
 
+from layout_lens.core.settings import Settings
 from layout_lens.utilities.utilities import Utilities
 from layout_lens.schemas.room_plan import (
     Element,
@@ -25,14 +26,13 @@ from layout_lens.schemas.room_plan import (
 
 @dataclass(frozen=True)
 class GeometryService:
-    # --- tolerances
     boundary_tolerance: float = 0.02  # expand room slightly for "barely outside"
     boundary_margin: float = 0.05  # extra breathing room when suggesting fixes
     overlap_area_tolerance: float = 0.002  # ignore tiny intersections
     overlap_separation_margin: float = 0.10  # how much to separate beyond overlap
     max_reported_overlap_pairs: int = 12
     wall_max_distance: float = 0.35  # "near wall" requirement for WALL placement
-    validation_error_path: Path = Path("./runs/validation_error.txt")  # set to Path(...) to dump failures locally
+    validation_error_path: Path = Path("./runs/validation_error.txt")
 
     # -------------------------
     # Geometry construction
@@ -69,15 +69,13 @@ class GeometryService:
     # -------------------------
     # Validation entrypoints
     # -------------------------
-    def validate_space_or_retry(self, space: Space) -> Space:
+    def validate_space_or_retry(self, space: Space, settings: Settings) -> Space:
         room_polygon = self.create_room_polygon(space)
 
         if not room_polygon.is_valid:
             raise ModelRetry("Space boundary polygon is invalid. Output a simple non-self-intersecting polygon.")
         if room_polygon.area <= 0:
             raise ModelRetry("Space boundary polygon has zero/negative area. Output a polygon with positive area.")
-
-        # boundary[0] == (0,0) is enforced by the Space schema validator now.
 
         if not space.openings:
             return space
@@ -134,15 +132,17 @@ class GeometryService:
                 )
 
         if issues:
-            raise ModelRetry(
-                "Space.openings are invalid. Fix ALL issues below and retry.\n\n"
-                + "\n".join(f"{i}) {msg}" for i, msg in enumerate(issues, start=1))
+            error_message: str = (
+                "RoomPlan validation failed. Fix ALL issues below and retry.\n"
+                + "\n".join(f"{i + 1}) {msg}" for i, msg in enumerate(issues))
             )
+            Utilities.write_text(settings.validation_error_path, error_message)
+            raise ModelRetry(error_message)
 
         return space
 
 
-    def validate_room_plan_or_retry(self, plan: RoomPlan) -> RoomPlan:
+    def validate_room_plan_or_retry(self, plan: RoomPlan, settings: Settings) -> RoomPlan:
         room_polygon = self.create_room_polygon(plan.space)
         tolerant_room_polygon = room_polygon.buffer(self.boundary_tolerance)
 
@@ -158,13 +158,13 @@ class GeometryService:
         issues += self._collect_near_duplicate_floor_items(plan.elements)
 
         if issues:
-            message = (
+            error_message: str = (
                 "RoomPlan validation failed. Fix ALL issues below and retry.\n"
-                "Rules reminder: keep RoomPlan.space unchanged; keep valid elements unchanged if possible.\n\n"
+                "Reminder: keep RoomPlan.space unchanged\n"
                 + "\n".join(f"{i + 1}) {msg}" for i, msg in enumerate(issues))
             )
-            Utilities.write_text(self.validation_error_path, message)
-            raise ModelRetry(message)
+            Utilities.write_text(settings.validation_error_path, error_message)
+            raise ModelRetry(error_message)
 
         return plan
 
