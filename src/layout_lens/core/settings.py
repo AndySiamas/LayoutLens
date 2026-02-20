@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -9,7 +11,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env')
 
     llm_base_url: str = 'http://localhost:1234/v1'
-    llm_model: str = 'qwen/qwen3-32b'
+    llm_provider: Literal['local', 'openai', 'google', 'anthropic'] = 'local'
+    llm_model: str = 'google/gemma-3-27b'
+    llm_api_key: str = ''
     room_grid_size: float = 0.25
 
     # Root folder where all runs go

@@ -1,8 +1,7 @@
 from pathlib import Path
 
-from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai import exceptions as pai_exc
+from pydantic_ai.usage import RunUsage
 
 from layout_lens.agents.deps import Deps
 from layout_lens.agents.design_agent import DesignAgent
@@ -10,6 +9,7 @@ from layout_lens.agents.space_agent import SpaceAgent
 from layout_lens.agents.room_plan_agent import RoomPlanAgent
 from layout_lens.core.settings import Settings
 from layout_lens.core.geometry.geometry_service import GeometryService
+from layout_lens.llm.model_factory import ModelFactory
 from layout_lens.schemas.room_plan import RoomPlan
 from layout_lens.utilities.utilities import Utilities
 
@@ -24,8 +24,7 @@ class Application:
         self.settings.set_run_output_dir(run_output_dir_path)
         Utilities.reset_dir(self.settings.run_output_dir_path)
 
-        provider = OpenAIProvider(base_url=self.settings.llm_base_url)
-        model = OpenAIChatModel(model_name=self.settings.llm_model, provider=provider)
+        model = ModelFactory.create_model(self.settings)
 
         deps = Deps(
             settings=self.settings,

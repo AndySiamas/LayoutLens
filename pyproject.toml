@@ -9,7 +9,7 @@ description = "An agentic prompt to 3D placeholder visualizer (LayoutLens)"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-  "pydantic-ai-slim[openai]",
+  "pydantic-ai",
   "pydantic-settings",
   "python-dotenv",
   "shapely",
